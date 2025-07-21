@@ -607,8 +607,11 @@ def get_educational_content():
     return jsonify(content)
 
 if __name__ == '__main__':
+    import os
     print("🧬 Simplified Protein Structure-Function Analysis")
     print("🎯 Using Chou-Fasman method for secondary structure prediction")
-    print("🌐 Web interface: http://localhost:5000")
+    print("🌐 Web interface: Starting server...")
     
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    # Get port from environment variable (Railway sets this)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(debug=False, host='0.0.0.0', port=port)
