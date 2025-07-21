@@ -1,0 +1,1093 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Protein Structure-Function Predictor | AI-Powered Analysis</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-blue: #1e3a8a;
+            --secondary-blue: #3b82f6;
+            --accent-green: #10b981;
+            --warm-orange: #f59e0b;
+            --deep-purple: #7c3aed;
+            --text-dark: #1f2937;
+            --text-light: #6b7280;
+            --bg-light: #f8fafc;
+            --border-light: #e5e7eb;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            line-height: 1.6;
+            color: var(--text-dark);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-light);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 800;
+            background: linear-gradient(45deg, var(--primary-blue), var(--deep-purple));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text-dark);
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--secondary-blue);
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 4rem 0;
+            text-align: center;
+            color: white;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            font-weight: 900;
+            margin-bottom: 1rem;
+            background: linear-gradient(45deg, #ffffff, #e0e7ff);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            font-size: 1.3rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .cta-button {
+            background: linear-gradient(45deg, var(--accent-green), #059669);
+            color: white;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(16, 185, 129, 0.3);
+        }
+
+        /* Main Content */
+        .main-content {
+            background: white;
+            margin: -2rem 0 2rem 0;
+            border-radius: 20px 20px 0 0;
+            box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.1);
+            min-height: calc(100vh - 200px);
+        }
+
+        .content-wrapper {
+            padding: 3rem 0;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            background: var(--bg-light);
+            border-radius: 12px;
+            padding: 0.5rem;
+            margin-bottom: 2rem;
+            overflow-x: auto;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 1rem 1.5rem;
+            text-align: center;
+            background: transparent;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .tab.active {
+            background: white;
+            color: var(--primary-blue);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Input Section */
+        .input-section {
+            background: var(--bg-light);
+            padding: 2rem;
+            border-radius: 16px;
+            margin-bottom: 2rem;
+        }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .sequence-input {
+            width: 100%;
+            min-height: 120px;
+            padding: 1rem;
+            border: 2px solid var(--border-light);
+            border-radius: 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            resize: vertical;
+            transition: border-color 0.3s ease;
+        }
+
+        .sequence-input:focus {
+            outline: none;
+            border-color: var(--secondary-blue);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .input-actions {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, var(--secondary-blue), var(--primary-blue));
+            color: white;
+        }
+
+        .btn-secondary {
+            background: white;
+            color: var(--text-dark);
+            border: 2px solid var(--border-light);
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Results Section */
+        .results-section {
+            margin-top: 2rem;
+        }
+
+        .result-card {
+            background: white;
+            border: 1px solid var(--border-light);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--bg-light);
+        }
+
+        .result-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-blue);
+        }
+
+        .confidence-badge {
+            background: linear-gradient(45deg, var(--accent-green), #059669);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        /* Structure Visualization */
+        .structure-viz {
+            background: var(--bg-light);
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            overflow-x: auto;
+        }
+
+        .structure-sequence {
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            line-height: 1.8;
+            letter-spacing: 1px;
+        }
+
+        .structure-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-light);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+        }
+
+        /* Functional Analysis */
+        .functional-regions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .region-card {
+            background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: transform 0.3s ease;
+        }
+
+        .region-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .region-type {
+            font-weight: 700;
+            color: var(--primary-blue);
+            margin-bottom: 0.5rem;
+        }
+
+        .region-info {
+            font-size: 0.9rem;
+            color: var(--text-light);
+            margin-bottom: 1rem;
+        }
+
+        .region-function {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            border-left: 4px solid var(--accent-green);
+        }
+
+        /* Statistics */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        /* Educational Content */
+        .educational-section {
+            background: var(--bg-light);
+            padding: 2rem;
+            border-radius: 16px;
+            margin-bottom: 2rem;
+        }
+
+        .learning-modules {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .module-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            border-left: 4px solid var(--deep-purple);
+        }
+
+        .module-title {
+            font-weight: 700;
+            color: var(--primary-blue);
+            margin-bottom: 1rem;
+        }
+
+        /* Loading States */
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 3rem;
+            flex-direction: column;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--bg-light);
+            border-top: 4px solid var(--secondary-blue);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .tabs {
+                flex-direction: column;
+            }
+
+            .tab {
+                margin-bottom: 0.5rem;
+            }
+
+            .input-actions {
+                flex-direction: column;
+            }
+
+            .nav-links {
+                display: none;
+            }
+        }
+
+        /* Error States */
+        .error-message {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #dc2626;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .success-message {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            color: #166534;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        /* Charts */
+        .chart-container {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            height: 400px;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">🧬 ProteinAI</div>
+                <nav>
+                    <ul class="nav-links">
+                        <li><a href="#analyze">Analyze</a></li>
+                        <li><a href="#learn">Learn</a></li>
+                        <li><a href="#about">About</a></li>
+                        <li><a href="#api">API</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <section class="hero">
+        <div class="container">
+            <h1>Protein Structure Meets Function</h1>
+            <p>Discover how protein secondary structure drives biological function using advanced Hidden Markov Models and 8-state DSSP classification</p>
+            <a href="#analyze" class="cta-button">Start Analysis →</a>
+        </div>
+    </section>
+
+    <main class="main-content">
+        <div class="container">
+            <div class="content-wrapper" id="analyze">
+                <div class="tabs">
+                    <button class="tab active" onclick="switchTab('single')">Single Sequence</button>
+                    <button class="tab" onclick="switchTab('batch')">Batch Analysis</button>
+                    <button class="tab" onclick="switchTab('learn')">Learn</button>
+                    <button class="tab" onclick="switchTab('examples')">Examples</button>
+                </div>
+
+                <!-- Single Sequence Analysis Tab -->
+                <div id="single-tab" class="tab-content active">
+                    <div class="input-section">
+                        <div class="input-group">
+                            <label for="protein-sequence">Protein Sequence (Amino Acids)</label>
+                            <textarea 
+                                id="protein-sequence" 
+                                class="sequence-input" 
+                                placeholder="Enter your protein sequence here (e.g., MKWVTFISLLLLFSSAYSRGVFRRDTHKSEIAHRFKDLGEEHFKGLVLIAFSQYLQQCPFDEHVKLVNELTEFAKTCVADESHAGCEKSLHTLFGDELCKVASLRETYGDMADCCEKQEPERNECFLSHKDDSPDLPKLKPDPNTLCDEFKADEKKFWGKYLYEIARRHPYFYAPELLYYANKYNGVFQECCQAEDKGACLLPKIETMREKVLASSARQRLRCASIQKFGERALKAWSVARLSQKFPKAEFVEVTKLVTDLTKVHKECCHGDLLECADDRADLAKYICDNQDTISSKLKECCDKPVNGFNKTYRGAFQPCIINAGADRGLRAGRTAHIARILSGRSGSLHTIQSGKIQTNIHGFSVFHQSPDPVQKDNDFLSTVSSGNDSLHILDPDPQYHLITADKTTDKLPHEGEYIQRSALDKLGDAVHFHSADQHQAPKFQNEIAPEHGGIGVTLQSHSGFSKTIPGDWLKSLDEELKKLEEMLSHGAGKIGDIETKKLQPQKLR">MKWVTFISLLLLFSSAYSRGVFRRDTHKSEIAHRFKDLGEEHFKGLVLIAFSQYLQQCPFDEHVKLVNELTEFAKTCVADESHAGCEKSLHTLFGDELCKVASLRETYGDMADCCEKQEPERNECFLSHKDDSPDLPKLKPDPNTLCDEFKADEKKFWGKYLYEIARRHPYFYAPELLYYANKYNGVFQECCQAEDKGACLLPKIETMREKVLASSARQRLRCASIQKFGERALKAWSVARLSQKFPKAEFVEVTKLVTDLTKVHKECCHGDLLECADDRADLAKYICDNQDTISSKLKECCDKPVNGFNKTYRGAFQPCIINAGADRGLRAGRTAHIARILSGRSGSLHTIQSGKIQTNIHGFSVFHQSPDPVQKDNDFLSTVSSGNDSLHILDPDPQYHLITADKTTDKLPHEGEYIQRSALDKLGDAVHFHSADQHQAPKFQNEIAPEHGGIGVTLQSHSGFSKTIPGDWLKSLDEELKKLEEMLSHGAGKIGDIETKKLQPQKLR</textarea>
+                        </div>
+                        <div class="input-actions">
+                            <button class="btn btn-primary" onclick="analyzeSequence()">
+                                🔬 Analyze Structure & Function
+                            </button>
+                            <button class="btn btn-secondary" onclick="clearSequence()">
+                                🗑️ Clear
+                            </button>
+                            <button class="btn btn-secondary" onclick="loadExample()">
+                                📚 Load Example
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="results-container" class="results-section" style="display: none;">
+                        <!-- Results will be populated here -->
+                    </div>
+                </div>
+
+                <!-- Batch Analysis Tab -->
+                <div id="batch-tab" class="tab-content">
+                    <div class="input-section">
+                        <div class="input-group">
+                            <label for="batch-sequences">Multiple Sequences (FASTA format)</label>
+                            <textarea 
+                                id="batch-sequences" 
+                                class="sequence-input" 
+                                style="min-height: 200px;"
+                                placeholder=">Sequence1&#10;MKWVTFISLLLLFSSAYSRGVFR&#10;>Sequence2&#10;RDTHKSEIAHRFKDLGEEHFKG&#10;>Sequence3&#10;LVLIAFSQYLQQCPFDEHVKLV"></textarea>
+                        </div>
+                        <div class="input-actions">
+                            <button class="btn btn-primary" onclick="analyzeBatch()">
+                                📊 Analyze Batch
+                            </button>
+                            <input type="file" id="fasta-file" accept=".fasta,.fa,.txt" style="display: none;" onchange="loadFastaFile()">
+                            <button class="btn btn-secondary" onclick="document.getElementById('fasta-file').click()">
+                                📁 Upload FASTA
+                            </button>
+                        </div>
+                    </div>
+                    <div id="batch-results" class="results-section" style="display: none;">
+                        <!-- Batch results will be populated here -->
+                    </div>
+                </div>
+
+                <!-- Learn Tab -->
+                <div id="learn-tab" class="tab-content">
+                    <div class="educational-section">
+                        <h2 style="margin-bottom: 2rem; color: var(--primary-blue);">Understanding Protein Structure-Function Relationships</h2>
+                        
+                        <div class="learning-modules">
+                            <div class="module-card">
+                                <h3 class="module-title">Secondary Structure Types</h3>
+                                <p><strong>α-helix (H):</strong> Spiral structure stabilized by hydrogen bonds. Common in structural proteins and often contains binding sites.</p>
+                                <p><strong>β-strand (E):</strong> Extended structure forming sheets. Critical for enzyme active sites and protein interfaces.</p>
+                                <p><strong>Coil/Loop (C):</strong> Flexible regions often containing functional sites and regulatory elements.</p>
+                            </div>
+                            
+                            <div class="module-card">
+                                <h3 class="module-title">Structure-Function Principles</h3>
+                                <p><strong>Active Sites:</strong> Often located in flexible loops between structured elements.</p>
+                                <p><strong>Binding Domains:</strong> Structured regions (helices/sheets) provide stability and specificity.</p>
+                                <p><strong>Allosteric Sites:</strong> Regulatory regions that change conformation to affect function.</p>
+                            </div>
+                            
+                            <div class="module-card">
+                                <h3 class="module-title">8-State DSSP Classification</h3>
+                                <p>Our enhanced model uses 8 states for precise structural annotation:</p>
+                                <ul style="margin-top: 0.5rem; padding-left: 1rem;">
+                                    <li><strong>H:</strong> α-helix</li>
+                                    <li><strong>G:</strong> 3₁₀-helix</li>
+                                    <li><strong>I:</strong> π-helix</li>
+                                    <li><strong>E:</strong> β-strand</li>
+                                    <li><strong>B:</strong> β-bridge</li>
+                                    <li><strong>T:</strong> Turn</li>
+                                    <li><strong>S:</strong> Bend</li>
+                                    <li><strong>C:</strong> Coil</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Examples Tab -->
+                <div id="examples-tab" class="tab-content">
+                    <div class="input-section">
+                        <h2 style="margin-bottom: 1.5rem; color: var(--primary-blue);">Example Proteins</h2>
+                        <div class="learning-modules">
+                            <div class="module-card" onclick="loadExampleProtein('insulin')">
+                                <h3 class="module-title">🍯 Insulin (Hormone)</h3>
+                                <p>A small protein hormone with predominantly helical structure. Critical for glucose regulation.</p>
+                                <button class="btn btn-secondary" style="margin-top: 1rem;">Load & Analyze</button>
+                            </div>
+                            
+                            <div class="module-card" onclick="loadExampleProtein('lysozyme')">
+                                <h3 class="module-title">🦠 Lysozyme (Enzyme)</h3>
+                                <p>Antimicrobial enzyme with mixed α/β structure. Contains active site cleft between domains.</p>
+                                <button class="btn btn-secondary" style="margin-top: 1rem;">Load & Analyze</button>
+                            </div>
+                            
+                            <div class="module-card" onclick="loadExampleProtein('myoglobin')">
+                                <h3 class="module-title">🫁 Myoglobin (Oxygen Storage)</h3>
+                                <p>All-alpha protein that stores oxygen in muscle. Simple fold with heme binding site.</p>
+                                <button class="btn btn-secondary" style="margin-top: 1rem;">Load & Analyze</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Tab switching functionality
+        function switchTab(tabName) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Remove active class from all tabs
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab content
+            document.getElementById(tabName + '-tab').classList.add('active');
+            
+            // Add active class to clicked tab
+            event.target.classList.add('active');
+        }
+
+        // Example protein sequences
+        const exampleProteins = {
+            insulin: {
+                name: "Human Insulin",
+                sequence: "GIVEQCCTSICSLYQLENYCN",
+                description: "Small hormone protein with helical structure"
+            },
+            lysozyme: {
+                name: "Hen Egg White Lysozyme", 
+                sequence: "KVFGRCELAAAMKRHGLDNYRGYSLGNWVCAAKFESNFNTQATNRNTDGSTDYGILQINSRWWCNDGRTPGSRNLCNIPCSALLSSDITASVNCAKKIVSDGNGMNAWVAWRNRCKGTDVQAWIRGCRL",
+                description: "Antimicrobial enzyme with mixed structure"
+            },
+            myoglobin: {
+                name: "Sperm Whale Myoglobin",
+                sequence: "VLSEGEWQLVLHVWAKVEADVAGHGQDILIRLFKSHPETLEKFDRFKHLKTEAEMKASEDLKKHGVTVLTALGAILKKKGHHEAELKPLAQSHATKHKIPIKYLEFISEAIIHVLHSRHPGNFGADAQGAMNKALELFRKDIAAKYKELGYQG",
+                description: "All-alpha oxygen storage protein"
+            }
+        };
+
+        // Load example sequence
+        function loadExample() {
+            const sequence = "MKWVTFISLLLLFSSAYSRGVFRRDTHKSEIAHRFKDLGEEHFKGLVLIAFSQYLQQCPFDEHVKLVNELTEFAKTCVADESHAGCEKSLHTLFGDELCKVASLRETYGDMADCCEKQEPERNECFLSHKDDSPDLPKLKPDPNTLCDEFKADEKKFWGKYLYEIARRHPYFYAPELLYYANKYNGVFQECCQAEDKGACLLPKIETMREKVLASSARQRLRCASIQKFGERALKAWSVARLSQKFPKAEFVEVTKLVTDLTKVHKECCHGDLLECADDRADLAKYICDNQDTISSKLKECCDKPVNGFNKTYRGAFQPCIINAGADRGLRAGRTAHIARILSGRSGSLHTIQSGKIQTNIHGFSVFHQSPDPVQKDNDFLSTVSSGNDSLHILDPDPQYHLITADKTTDKLPHEGEYIQRSALDKLGDAVHFHSADQHQAPKFQNEIAPEHGGIGVTLQSHSGFSKTIPGDWLKSLDEELKKLEEMLSHGAGKIGDIETKKLQPQKLR";
+            document.getElementById('protein-sequence').value = sequence;
+        }
+
+        // Load specific example protein
+        function loadExampleProtein(proteinType) {
+            const protein = exampleProteins[proteinType];
+            document.getElementById('protein-sequence').value = protein.sequence;
+            switchTab('single');
+            // Auto-analyze
+            setTimeout(() => analyzeSequence(), 500);
+        }
+
+        // Clear sequence
+        function clearSequence() {
+            document.getElementById('protein-sequence').value = '';
+            document.getElementById('results-container').style.display = 'none';
+        }
+
+        // Main analysis function
+        async function analyzeSequence() {
+            const sequence = document.getElementById('protein-sequence').value.trim();
+            
+            if (!sequence) {
+                showError('Please enter a protein sequence');
+                return;
+            }
+
+            // Validate sequence
+            const validAA = /^[ACDEFGHIKLMNPQRSTVWY\s\n]*$/i;
+            if (!validAA.test(sequence)) {
+                showError('Invalid amino acid sequence. Please use only standard amino acid letters.');
+                return;
+            }
+
+            const cleanSequence = sequence.replace(/[\s\n]/g, '').toUpperCase();
+            
+            if (cleanSequence.length < 3) {
+                showError('Sequence too short (minimum 3 amino acids)');
+                return;
+            }
+
+            if (cleanSequence.length > 1000) {
+                showError('Sequence too long (maximum 1000 amino acids)');
+                return;
+            }
+
+            // Show loading
+            showLoading();
+
+            try {
+                const response = await fetch('/api/predict_structure_function', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        sequence: cleanSequence
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Analysis failed');
+                }
+
+                const results = await response.json();
+                displayResults(results);
+
+            } catch (error) {
+                showError('Analysis failed: ' + error.message);
+            }
+        }
+
+        // Display results
+        function displayResults(results) {
+            const container = document.getElementById('results-container');
+            
+            const html = `
+                <div class="result-card">
+                    <div class="result-header">
+                        <h2 class="result-title">Structure-Function Analysis</h2>
+                        <div class="confidence-badge">Confidence: ${results.confidence}%</div>
+                    </div>
+
+                    <!-- Structure Visualization -->
+                    <div class="structure-viz">
+                        <h3 style="margin-bottom: 1rem;">Secondary Structure Prediction</h3>
+                        <div class="structure-sequence">
+                            <div style="margin-bottom: 0.5rem;">Sequence: ${formatSequence(results.sequence)}</div>
+                            <div>Structure: ${formatStructure(results.structure)}</div>
+                        </div>
+                        <div class="structure-legend">
+                            <div class="legend-item">
+                                <div class="legend-color" style="background: #FF0000;"></div>
+                                <span>H: α-helix</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background: #0000FF;"></div>
+                                <span>E: β-strand</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background: #00FF00;"></div>
+                                <span>T: Turn</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background: #CCCCCC;"></div>
+                                <span>C: Coil</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Statistics -->
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-value">${results.statistics.summary.total_length}</div>
+                            <div class="stat-label">Total Residues</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">${results.statistics.summary.helical_content}%</div>
+                            <div class="stat-label">Helical Content</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">${results.statistics.summary.extended_content}%</div>
+                            <div class="stat-label">Extended Content</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">${results.statistics.summary.coil_content}%</div>
+                            <div class="stat-label">Flexible Regions</div>
+                        </div>
+                    </div>
+
+                    <!-- Functional Analysis -->
+                    <div style="margin-bottom: 1.5rem;">
+                        <h3 style="margin-bottom: 1rem; color: var(--primary-blue);">Functional Regions</h3>
+                        <div class="functional-regions">
+                            ${results.functional_analysis.functional_regions.map(region => `
+                                <div class="region-card">
+                                    <div class="region-type">${region.description}</div>
+                                    <div class="region-info">
+                                        Position ${region.start}-${region.end} (${region.length} residues)
+                                    </div>
+                                    <div class="region-function">
+                                        <strong>Function:</strong> ${region.functional_implications}
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <!-- Structural Motifs -->
+                    ${results.functional_analysis.structural_motifs.length > 0 ? `
+                        <div style="margin-bottom: 1.5rem;">
+                            <h3 style="margin-bottom: 1rem; color: var(--primary-blue);">Structural Motifs</h3>
+                            <div class="functional-regions">
+                                ${results.functional_analysis.structural_motifs.map(motif => `
+                                    <div class="region-card">
+                                        <div class="region-type">${motif.type}</div>
+                                        <div class="region-info">Position ${motif.start}-${motif.end}</div>
+                                        <div class="region-function">
+                                            <strong>Function:</strong> ${motif.function}
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+
+                    <!-- Flexibility Analysis -->
+                    <div style="margin-bottom: 1.5rem;">
+                        <h3 style="margin-bottom: 1rem; color: var(--primary-blue);">Flexibility Analysis</h3>
+                        <div class="region-card">
+                            <p><strong>Average Flexibility:</strong> ${results.functional_analysis.flexibility_analysis.average_flexibility}</p>
+                            <p><strong>Most Flexible Regions:</strong> ${results.functional_analysis.flexibility_analysis.most_flexible_regions.join(', ')}</p>
+                            <p><strong>Most Rigid Regions:</strong> ${results.functional_analysis.flexibility_analysis.most_rigid_regions.join(', ')}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            container.innerHTML = html;
+            container.style.display = 'block';
+        }
+
+        // Format sequence for display
+        function formatSequence(sequence) {
+            return sequence.match(/.{1,80}/g).join('\\n');
+        }
+
+        // Format structure with colors
+        function formatStructure(structure) {
+            const colorMap = {
+                'H': '#FF0000', 'G': '#FF6666', 'I': '#990000',
+                'E': '#0000FF', 'B': '#6666FF',
+                'T': '#00FF00', 'S': '#66FF66',
+                'C': '#CCCCCC'
+            };
+            
+            return structure.split('').map(ss => 
+                `<span style="color: ${colorMap[ss] || '#000000'}; font-weight: bold;">${ss}</span>`
+            ).join('');
+        }
+
+        // Batch analysis
+        async function analyzeBatch() {
+            const batchText = document.getElementById('batch-sequences').value.trim();
+            
+            if (!batchText) {
+                showError('Please enter sequences in FASTA format');
+                return;
+            }
+
+            // Parse FASTA
+            const sequences = parseFasta(batchText);
+            
+            if (sequences.length === 0) {
+                showError('No valid sequences found');
+                return;
+            }
+
+            if (sequences.length > 50) {
+                showError('Too many sequences (maximum 50)');
+                return;
+            }
+
+            showBatchLoading();
+
+            try {
+                const response = await fetch('/api/analyze_batch', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        sequences: sequences.map(s => s.sequence)
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Batch analysis failed');
+                }
+
+                const results = await response.json();
+                displayBatchResults(results, sequences);
+
+            } catch (error) {
+                showError('Batch analysis failed: ' + error.message);
+            }
+        }
+
+        // Parse FASTA format
+        function parseFasta(text) {
+            const sequences = [];
+            const lines = text.split('\\n');
+            let currentSequence = '';
+            let currentHeader = '';
+
+            for (let line of lines) {
+                line = line.trim();
+                if (line.startsWith('>')) {
+                    if (currentSequence) {
+                        sequences.push({
+                            header: currentHeader,
+                            sequence: currentSequence.replace(/[^ACDEFGHIKLMNPQRSTVWY]/gi, '').toUpperCase()
+                        });
+                    }
+                    currentHeader = line.substring(1);
+                    currentSequence = '';
+                } else {
+                    currentSequence += line;
+                }
+            }
+
+            if (currentSequence) {
+                sequences.push({
+                    header: currentHeader,
+                    sequence: currentSequence.replace(/[^ACDEFGHIKLMNPQRSTVWY]/gi, '').toUpperCase()
+                });
+            }
+
+            return sequences.filter(s => s.sequence.length >= 3);
+        }
+
+        // Display batch results
+        function displayBatchResults(results, sequences) {
+            const container = document.getElementById('batch-results');
+            
+            const html = `
+                <div class="result-card">
+                    <h2 class="result-title">Batch Analysis Results</h2>
+                    <p>Analyzed ${results.successful_analyses}/${results.total_analyzed} sequences</p>
+                    
+                    <div style="margin-top: 2rem;">
+                        ${results.batch_results.map((result, index) => {
+                            if (result.error) {
+                                return `
+                                    <div class="region-card" style="border-left: 4px solid #dc2626;">
+                                        <h4>Sequence ${index + 1}: ${sequences[index]?.header || 'Unknown'}</h4>
+                                        <p style="color: #dc2626;">Error: ${result.error}</p>
+                                    </div>
+                                `;
+                            } else {
+                                return `
+                                    <div class="region-card">
+                                        <h4>Sequence ${index + 1}: ${sequences[index]?.header || 'Unknown'}</h4>
+                                        <p><strong>Length:</strong> ${result.sequence.length} residues</p>
+                                        <p><strong>Helical:</strong> ${result.statistics.summary.helical_content}% | 
+                                           <strong>Extended:</strong> ${result.statistics.summary.extended_content}% | 
+                                           <strong>Coil:</strong> ${result.statistics.summary.coil_content}%</p>
+                                        <p><strong>Confidence:</strong> ${result.confidence}%</p>
+                                        <p><strong>Functional Regions:</strong> ${result.functional_analysis.functional_regions.length}</p>
+                                    </div>
+                                `;
+                            }
+                        }).join('')}
+                    </div>
+                </div>
+            `;
+
+            container.innerHTML = html;
+            container.style.display = 'block';
+        }
+
+        // Load FASTA file
+        function loadFastaFile() {
+            const file = document.getElementById('fasta-file').files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('batch-sequences').value = e.target.result;
+                };
+                reader.readAsText(file);
+            }
+        }
+
+        // Show loading state
+        function showLoading() {
+            const container = document.getElementById('results-container');
+            container.innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Analyzing protein structure and function...</p>
+                </div>
+            `;
+            container.style.display = 'block';
+        }
+
+        // Show batch loading state
+        function showBatchLoading() {
+            const container = document.getElementById('batch-results');
+            container.innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Analyzing batch of sequences...</p>
+                </div>
+            `;
+            container.style.display = 'block';
+        }
+
+        // Show error message
+        function showError(message) {
+            const container = document.getElementById('results-container');
+            container.innerHTML = `
+                <div class="error-message">
+                    <strong>Error:</strong> ${message}
+                </div>
+            `;
+            container.style.display = 'block';
+        }
+
+        // Smooth scrolling for navigation
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Auto-load example on page load
+        window.addEventListener('load', function() {
+            loadExample();
+        });
+    </script>
+</body>
+</html>
